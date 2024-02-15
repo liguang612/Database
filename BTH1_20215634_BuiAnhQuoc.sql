@@ -1,0 +1,229 @@
+-- a), f) Tạo cơ sở dữ liệu có tên QLBongDa
+CREATE DATABASE QLBongDa
+USE QLBongDa
+GO
+
+-- b), g), h) Tạo các bảng cho cơ sở dữ liệu trên
+CREATE TABLE QUOCGIA (
+    MAQG VARCHAR(5) NOT NULL,
+    TENQG NVARCHAR(60) NOT NULL,
+)
+ALTER TABLE QUOCGIA ADD CONSTRAINT pk_quocgia PRIMARY KEY(MAQG)
+ALTER TABLE QUOCGIA ADD CONSTRAINT unique_quocgia UNIQUE(TENQG)
+
+CREATE TABLE TINH (
+    MATINH VARCHAR(5) NOT NULL,
+    TENTINH NVARCHAR(100) NOT NULL,
+)
+ALTER TABLE TINH ADD CONSTRAINT pk_tinh PRIMARY KEY(MATINH)
+ALTER TABLE TINH ADD CONSTRAINT unique_tinh UNIQUE(TENTINH)
+
+CREATE TABLE SANVD (
+    MASAN VARCHAR(5) NOT NULL,
+    TENSAN NVARCHAR(100) NOT NULL,
+    DIACHI NVARCHAR(200),
+)
+ALTER TABLE SANVD ADD CONSTRAINT pk_sanvd PRIMARY KEY(MASAN)
+ALTER TABLE SANVD ADD CONSTRAINT unique_tensan UNIQUE(TENSAN)
+
+CREATE TABLE HUANLUYENVIEN (
+    MAHLV VARCHAR(5) NOT NULL,
+    TENHLV NVARCHAR(100) NOT NULL,
+    NGAYSINH DATETIME,
+    DIACHI NVARCHAR(200),
+    DIENTHOAI NVARCHAR(20),
+    MAQG VARCHAR(5) NOT NULL,
+)
+ALTER TABLE HUANLUYENVIEN ADD CONSTRAINT pk_huanluyenvien PRIMARY KEY(MAHLV)
+ALTER TABLE HUANLUYENVIEN ADD CONSTRAINT fk_huanluyenvien_quocgia FOREIGN KEY (MAQG) REFERENCES QUOCGIA(MAQG)
+
+CREATE TABLE CAULACBO (
+    MACLB VARCHAR(5) NOT NULL,
+    TENCLB NVARCHAR(100) NOT NULL,
+    MASAN VARCHAR(5) NOT NULL,
+    MATINH VARCHAR(5) NOT NULL,
+)
+ALTER TABLE CAULACBO ADD CONSTRAINT pk_caulacbo PRIMARY KEY (MACLB)
+ALTER TABLE CAULACBO ADD CONSTRAINT fk_caulacbo_tinh FOREIGN KEY (MATINH) REFERENCES TINH(MATINH)
+ALTER TABLE CAULACBO ADD CONSTRAINT fk_caulacbo_sanvd FOREIGN KEY (MASAN) REFERENCES SANVD(MASAN)
+
+CREATE TABLE HLV_CLB (
+    MAHLV VARCHAR(5) NOT NULL,
+    MACLB VARCHAR(5) NOT NULL,
+    VAITRO NVARCHAR(100) NOT NULL,
+)
+ALTER TABLE HLV_CLB ADD CONSTRAINT pk_hlvclb PRIMARY KEY (MAHLV, MACLB)
+ALTER TABLE HLV_CLB ADD CONSTRAINT fk_hlvclb_huanluyenvien FOREIGN KEY (MAHLV) REFERENCES HUANLUYENVIEN(MAHLV)
+ALTER TABLE HLV_CLB ADD CONSTRAINT check_vaitro CHECK (VAITRO IN (N'HLV Chính', N'HLV thủ môn', N'HLV thể lực'))
+
+CREATE TABLE CAUTHU (
+    MACT NUMERIC IDENTITY(1,1) NOT NULL,
+    HOTEN NVARCHAR(100) NOT NULL,
+    VITRI NVARCHAR(20) NOT NULL,
+    NGAYSINH DATETIME,
+    DIACHI NVARCHAR(200),
+    MACLB VARCHAR(5) NOT NULL,
+    MAQG VARCHAR(5) NOT NULL,
+    SO INT NOT NULL,
+)
+ALTER TABLE CAUTHU ADD CONSTRAINT pk_cauthu PRIMARY KEY (MACT)
+ALTER TABLE CAUTHU ADD CONSTRAINT fk_cauthu_caulacbo FOREIGN KEY (MACLB) REFERENCES CAULACBO(MACLB)
+ALTER TABLE CAUTHU ADD CONSTRAINT fk_cauthu_quocgia FOREIGN KEY (MAQG) REFERENCES QUOCGIA(MAQG)
+ALTER TABLE CAUTHU ADD CONSTRAINT check_vitri CHECK (VITRI IN (N'Thủ môn', N'Tiền đạo', N'Tiền vệ', N'Trung vệ', N'Hậu vệ'))
+ALTER TABLE CAUTHU ADD CONSTRAINT unique_cauthu UNIQUE (MACLB, SO)
+
+CREATE TABLE BANGXH (
+    MACLB VARCHAR(5) NOT NULL,
+    NAM INT NOT NULL,
+    VONG INT NOT NULL,
+    SOTRAN INT NOT NULL,
+    THANG INT NOT NULL,
+    HOA INT NOT NULL,
+    THUA INT NOT NULL,
+    HIEUSO VARCHAR(5) NOT NULL,
+    DIEM INT NOT NULL,
+    HANG INT NOT NULL,
+)
+ALTER TABLE BANGXH ADD CONSTRAINT pk_bangxh PRIMARY KEY (MACLB, NAM, VONG)
+ALTER TABLE BANGXH ADD CONSTRAINT fk_bangxh_caulacbo FOREIGN KEY (MACLB) REFERENCES CAULACBO(MACLB)
+
+CREATE TABLE TRANDAU (
+    MATRAN NUMERIC IDENTITY(1,1) NOT NULL,
+    NAM INT NOT NULL,
+    VONG INT NOT NULL,
+    NGAYTD DATETIME NOT NULL,
+    MACLB1 VARCHAR(5) NOT NULL,
+    MACLB2 VARCHAR(5) NOT NULL,
+    MASAN VARCHAR(5) NOT NULL,
+    KETQUA VARCHAR(5) NOT NULL,
+)
+ALTER TABLE TRANDAU ADD CONSTRAINT pk_trandau PRIMARY KEY (MATRAN)
+ALTER TABLE TRANDAU ADD CONSTRAINT fk_trandau_sanvd FOREIGN KEY (MASAN) REFERENCES SANVD(MASAN)
+ALTER TABLE TRANDAU ADD CONSTRAINT fk_trandau_caulacbo1 FOREIGN KEY (MACLB1) REFERENCES CAULACBO(MACLB)
+ALTER TABLE TRANDAU ADD CONSTRAINT fk_trandau_caulacbo2 FOREIGN KEY (MACLB1) REFERENCES CAULACBO(MACLB)
+
+-- c) Nhập dữ liệu cho các Table nói trên
+INSERT INTO QUOCGIA(MAQG, TENQG)
+VALUES('VN', N'Việt Nam'),
+        ('ANH', N'Anh Quốc'),
+        ('TBN', N'Tây Ban Nha'),
+        ('BDN', N'Bồ Đào Nha'),
+        ('BRA', N'Bra-xin'),
+        ('ITA',N'Ý'),
+        ('THA',N'Thái Lan');
+
+INSERT INTO TINH(MATINH, TENTINH)
+VALUES('BD', N'Bình Dương'),
+        ('GL', N'Gia Lai'),
+        ('KH', N'Khánh Hòa'),
+        ('PY', N'Phú Yên'),
+        ('DN', N'Đà Nẵng'),
+        ('LA', N'Long An');     
+
+INSERT INTO SANVD(MASAN, TENSAN, DIACHI)
+VALUES ('GD', N'Gò Đậu', N'123 QL1, TX Thủ Dầu Một, Bình Dương'),
+        ('PL', N'Pleiku', N'22 Hồ Tùng Mậu, Thống nhất, Thị xã Pleiku, Gia Lai'),
+        ('CL', N'Chi Lăng', N'127 Võ Văn Tần, Đà Nẵng'),
+        ('NT', N'Nha Trang', N'128 Phan Chu Trinh, Nha Trang, Khánh Hòa'),
+        ('TH', N'Tuy Hòa', N'57 Trường Chinh, Tuy Hòa, Phú Yên'),
+        ('LA', N'Long An', N'102 Hùng Vương, Tp Tân An, Long An');
+
+INSERT INTO HUANLUYENVIEN(MAHLV, TENHLV, NGAYSINH, DIACHI, DIENTHOAI, MAQG)
+VALUES ('HLV01', N'Vital', '10/15/1955', 'NULL', '0918011075', 'BDN'),
+        ('HLV02', N'Lê Huỳnh Đức', '05/20/1972', 'NULL', '01223456789', 'VN'),
+        ('HLV03', N'Kiatisuk', '12/11/1970', 'NULL', '01990123456', 'THA'),
+        ('HLV04', N'Hoàng Anh Tuấn', '06/10/1970', 'NULL', '0989112233', 'VN'),
+        ('HLV05', N'Trần Công Minh', '07/07/1973', 'NULL', '0909099990', 'VN'),
+        ('HLV06', N'Trần Văn Phúc', '03/02/1965', 'NULL', '01650101234', 'VN');
+
+INSERT INTO CAULACBO(MACLB, TENCLB, MASAN, MATINH)
+VALUES ('BBD', N'BECAMEX BÌNH DƯƠNG', 'GD', 'BD'),
+        ('HAGL', N'HOÀNG ANH GIA LAI', 'PL', 'GL'),
+        ('SDN', N'SHB ĐÀ NẴNG', 'CL', 'DN'),
+        ('KKH', N'KHATOCO KHÁNH HÒA', 'NT', 'KH'),
+        ('TPY', N'THÉP PHÚ YÊN', 'TH', 'PY'),
+        ('GDT', N'GẠCH ĐỒNG TÂM LONG AN', 'LA', 'LA');
+
+INSERT INTO HLV_CLB(MAHLV, MACLB, VAITRO)
+VALUES ('HLV01', 'BBD', N'HLV Chính'),
+        ('HLV02', 'SDN', N'HLV Chính'),
+        ('HLV03', 'HAGL', N'HLV Chính'),
+        ('HLV04', 'KKH', N'HLV Chính'),
+        ('HLV05', 'GDT', N'HLV Chính'),
+        ('HLV06', 'BBD', N'HLV thủ môn');
+
+INSERT INTO TRANDAU(NAM, VONG, NGAYTD, MACLB1, MACLB2, MASAN, KETQUA) VALUES
+(2009, 1, '2/7/2009', 'BBD', 'SDN', 'GD', '3-0'),
+(2009, 1, '2/7/2009', 'KKH', 'GDT', 'NT', '1-1'),
+(2009, 2, '2/16/2009', 'SDN', 'KKH', 'CL', '2-2'),
+(2009, 2, '2/16/2009', 'TPY', 'BBD', 'TH', '5-0'),
+(2009, 3, '3/1/2009', 'TPY', 'GDT', 'TH', '0-2'),
+(2009, 3, '3/1/2009', 'KKH', 'BBD', 'NT', '0-1'),
+(2009, 4, '3/7/2009', 'KKH', 'TPY', 'NT', '1-0'),
+(2009, 4, '3/7/2009', 'BBD', 'GDT', 'GD', '2-2')
+
+INSERT INTO BANGXH(MACLB, NAM, VONG, SOTRAN, THANG, HOA, THUA, HIEUSO, DIEM, HANG) VALUES
+('BBD', 2009, 1, 1, 1, 0, 0, '3-0', 3, 1),
+('KKH', 2009, 1, 1, 0, 1, 0, '1-1', 1, 2),
+('GDT', 2009, 1, 1, 0, 1, 0, '1-1', 1, 3),
+('TPY', 2009, 1, 0, 0, 0, 0, '0-0', 0, 4),
+('SDN', 2009, 1, 1, 0, 0, 1, '0-3', 0, 5),
+('TPY', 2009, 2, 1, 1, 0, 0, '5-0', 3, 1),
+('BBD', 2009, 2, 2, 1, 0, 1, '3-5', 3, 2),
+('KKH', 2009, 2, 2, 0, 2, 0, '3-3', 2, 3),
+('GDT', 2009, 2, 1, 0, 1, 0, '1-1', 1, 4),
+('SDN', 2009, 2, 2, 1, 1, 0, '2-5', 1, 5),
+('BBD', 2009, 3, 3, 2, 0, 1, '4-5', 6, 1),
+('GDT', 2009, 3, 2, 1, 1, 0, '3-1', 4, 2),
+('TPY', 2009, 3, 2, 1, 0, 1, '5-2', 3, 3),
+('KKH', 2009, 3, 3, 0, 2, 1, '3-4', 2, 4),
+('SDN', 2009, 3, 2, 1, 1, 0, '2-5', 1, 5),
+('BBD', 2009, 4, 4, 2, 1, 1, '6-7', 7, 1),
+('GDT', 2009, 4, 3, 1, 2, 0, '5-1', 5, 2),
+('KKH', 2009, 4, 4, 1, 2, 1, '4-4', 5, 3),
+('TPY', 2009, 4, 3, 1, 0, 2, '5-3', 3, 4),
+('SDN', 2009, 4, 2, 1, 1, 0, '2-5', 1, 5)
+
+INSERT INTO CAUTHU(HOTEN, VITRI, NGAYSINH, DIACHI, MACLB, MAQG, SO) VALUES
+(N'Nguyễn Vũ Phong', N'Tiền vệ', '02/20/1990', NULL, 'BBD', 'VN', 17),
+(N'Nguyễn Công Vinh', N'Tiền đạo', '03/10/1992', NULL, 'HAGL', 'VN', 9),
+(N'Trần Tấn Tài', N'Tiền vệ', '11/12/1990', NULL, 'BBD', 'VN', 8),
+(N'Phan Hồng Sơn', N'Thủ môn', '06/10/1990', NULL, 'HAGL', 'VN', 1),
+(N'Ronaldo', N'Tiền vệ', '12/12/1990', NULL, 'SDN', 'BRA', 7),
+(N'Robinho', N'Tiền vệ', '10/12/1990', NULL, 'SDN', 'BRA', 8),
+(N'Vidic', N'Hậu Vệ', '10/15/1990', NULL, 'HAGL', 'ANH', 3),
+(N'Trần Văn Santos', N'Thủ môn', '10/21/1990', NULL, 'BBD', 'BRA', 1),
+(N'Nguyễn Trường Sơn', N'Hậu vệ', '8/26/1990', NULL, 'BBD', 'VN', 4)
+
+-- d) Xóa các bảng đã tạo
+DROP TABLE TRANDAU
+DROP TABLE BANGXH
+DROP TABLE CAUTHU
+DROP TABLE HLV_CLB
+DROP TABLE CAULACBO
+DROP TABLE HUANLUYENVIEN
+DROP TABLE SANVD
+DROP TABLE TINH
+DROP TABLE QUOCGIA
+
+-- e) Xóa cơ sở dữ liệu đã tạo
+USE master
+GO
+DROP DATABASE QLBongDa
+
+-- i) Tạo relationship (diagram) trên các quan hệ cho cơ sở dữ liệu QLBognDa (Ảnh đính kèm)
+
+-- j) Thực hiện Backup và Restore cơ sở dữ liệu QLBongDa nói trên
+BACKUP DATABASE QLBongDa TO DISK = 'C:\sqlbackup\QLBongDa_BuiAnhQuoc_20215634.bak'
+RESTORE DATABASE QLBongDa FROM DISK = 'C:\sqlbackup\QLBongDa_BuiAnhQuoc_20215634.bak'
+
+CREATE PROCEDURE select_cauthu AS
+BEGIN
+    SELECT * FROM CAUTHU
+END;
+
+EXEC select_cauthu
+
+CREATE INDEX hoten_huanluyenvien ON HUANLUYENVIEN(TENHLV)
+
+SELECT TENHLV FROM HUANLUYENVIEN 

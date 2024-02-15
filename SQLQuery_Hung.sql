@@ -1,0 +1,66 @@
+CREATE DATABASE Hung
+USE Hung
+GO
+
+CREATE TABLE HocPhan (
+    MaHP CHAR(6),
+    TenHP NVARCHAR(100),
+    soTC INT,
+    heSoCKy FLOAT
+
+    PRIMARY KEY (MaHP),
+)
+
+CREATE TABLE LopTC (
+    MaLop CHAR(6),
+    MaHP CHAR(6),
+    hocKy CHAR(5),
+
+    PRIMARY KEY (MaLop),
+    FOREIGN KEY (MaHp) REFERENCES HocPhan(MaHP)
+)
+
+CREATE TABLE SinhVien (
+    MaSV CHAR(6),
+    Hoten NVARCHAR(100),
+    Gtinh VARCHAR(3),
+    NgaySinh DATE
+
+    PRIMARY KEY (MaSV)
+)
+
+CREATE TABLE Hoc (
+    MaSV CHAR(6),
+    MaLop CHAR(6),
+    DiemQT FLOAT,
+    DiemCK FLOAT,
+    KetQua BIT,
+    
+    PRIMARY KEY (MaSV, MaLop),
+    FOREIGN KEY (MaSV) REFERENCES SinhVien(MaSV),
+    FOREIGN KEY (MaLop) REFERENCES LopTC(MaLop),
+    CHECK (DiemCK <= 10 AND DiemCK >= 0),
+    CHECK (DiemQT <= 10 AND DiemQT >= 0)
+)
+
+-- 2.1
+SELECT * FROM SinhVien
+WHERE MaSV IN (SELECT MaSV FROM Hoc WHERE MaLop = '111234')
+
+-- 2.2
+SELECT LopTC.MaLop, LopTC.MaHP, TenHP FROM HocPhan, LopTC
+    INNER JOIN (SELECT DISTINCT MaLop FROM LopTC EXCEPT (SELECT DISTINCT MaLop FROM Hoc)) AS Table1
+    ON LopTC.MaLop = Table1.MaLop
+WHERE LopTC.MaHP = HocPhan.MaHP;
+
+-- 2.3
+(SELECT DISTINCT hocKy FROM LopTC WHERE MaHP = 'IT3090')
+INTERSECT
+(SELECT DISTINCT hocKy FROM LopTC WHERE MaHP = 'IT3292')
+
+-- 2.4
+SELECT Hoc.MaLop FROM Hoc
+    INNER JOIN LopTC ON Hoc.MaLop = LopTC.MaLop
+WHERE hocKy = '20211'
+GROUP BY Hoc.MaLop
+HAVING COUNT(MaSV) > 100
